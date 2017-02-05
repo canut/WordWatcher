@@ -69,31 +69,31 @@ namespace WordWatcher
             char[] SplitChars = {' ', ',', ';', '<', '>', '/', '\t', '\n', '.', '#', '=' };
             WordCounter = Content.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries).Count();
         }
-    }
 
+        public async Task ProcessURLAsync()
+        {
+            await DownloadContentAsync();
+            CountWord();
+            Console.WriteLine("There is {0} words in my page {1}", WordCounter, Url);
+        }
+    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            // Simple URL download test (async)
-            Page mypage3 = new Page("http://www.gooazeerrgle.com");
-            Task.WaitAll(mypage3.DownloadContentAsync());
+            List<Page> UrlList = new List<Page> {
+                                    new Page("http://www.google.fr"),
+                                    new Page("http://www.facebook.fr"),
+                                    new Page("http://www.lemonde.fr"),
+                                    new Page("http://www.meteofrance.fr")
+                                    };
 
-            // Use of Exception but a simple if-statement is better here
-            try
-            {
-                mypage3.CountWord();
-                Console.WriteLine("There is {0} words in my page {1}", mypage3.WordCounter, mypage3.Url);
-            }
-            catch (NullReferenceException e)
-            {
-                Console.WriteLine("\n\nPage was empty !\nError: {0}", e);
-            }
-            finally
-            {
-                Console.ReadKey();
-            }
+            IEnumerable<Task> downloadTasksQuery = from page in UrlList select page.ProcessURLAsync();
+            Task[] downloadTasks = downloadTasksQuery.ToArray();
+            Task.WaitAll(downloadTasks);        // OK for void returning Task but how to do it it Task<int> is returned
+            Console.WriteLine("Press enter to exit...");
+            Console.ReadKey();
         }
     }
 }
